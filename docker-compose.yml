@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ebank-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: ebankdb
+      MYSQL_USER: ebank
+      MYSQL_PASSWORD: ebank123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ebank-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ebank-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ebankdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ebank
+      SPRING_DATASOURCE_PASSWORD: ebank123
+      JWT_SECRET: KassimiBank2024SecretKeyForJWTTokenGenerationMustBeAtLeast256BitsLong
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ebank-network
+    restart: unless-stopped
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ebank-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - ebank-network
+    restart: unless-stopped
+
+networks:
+  ebank-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

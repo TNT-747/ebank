@@ -1,48 +1,98 @@
-name: CD Pipeline
+name: CD Pipeline - Docker
 
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ${{ github.repository }}/ebank-backend
+  FRONTEND_IMAGE: ${{ github.repository }}/ebank-frontend
 
 jobs:
-  deploy:
-    name: Build and Deploy
+  build-and-push:
+    name: Build & Push Docker Images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
       with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Build Backend
-      run: mvn -B package -DskipTests --file backend/pom.xml
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Extract metadata for Backend
+      id: meta-backend
+      uses: docker/metadata-action@v5
       with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+        images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix=
+          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
     
-    - name: Build Frontend
+    - name: Extract metadata for Frontend
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix=
+          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+    
+    - name: Build and Push Backend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and Push Frontend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-info:
+    name: Deployment Info
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    
+    steps:
+    - name: Display Deployment Info
       run: |
-        cd frontend
-        npm ci
-        npm run build
-    
-    - name: Upload Backend Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-jar
-        path: backend/target/*.jar
-    
-    - name: Upload Frontend Artifact  
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-build
-        path: frontend/build/
+        echo "🚀 Docker images pushed successfully!"
+        echo ""
+        echo "📦 Backend Image: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest"
+        echo "📦 Frontend Image: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest"
+        echo ""
+        echo "To deploy, run:"
+        echo "  docker pull ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest"
+        echo "  docker pull ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest"
+        echo ""
+        echo "Or use docker-compose:"
+        echo "  docker-compose up -d"
