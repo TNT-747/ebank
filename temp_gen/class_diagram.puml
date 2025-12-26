@@ -1,0 +1,113 @@
+@startuml
+title eBank System - Class Diagram
+
+skinparam classAttributeIconSize 0
+
+class User {
+  - id : Long
+  - username : String
+  - password : String
+  - enabled : Boolean
+  - createdAt : LocalDateTime
+  --
+  + getId() : Long
+  + getUsername() : String
+  + setPassword(String)
+}
+
+class Role {
+  - id : Long
+  - name : String
+  --
+  + getName() : String
+}
+
+class Client {
+  - id : Long
+  - firstName : String
+  - lastName : String
+  - identityNumber : String
+  - birthDate : LocalDate
+  - email : String
+  - address : String
+  --
+  + getFullName() : String
+  + getEmail() : String
+}
+
+class Account {
+  - id : Long
+  - rib : String
+  - balance : BigDecimal
+  - status : AccountStatus
+  - createdAt : LocalDateTime
+  --
+  + getBalance() : BigDecimal
+  + credit(BigDecimal)
+  + debit(BigDecimal)
+  + isActive() : Boolean
+}
+
+enum AccountStatus {
+  OPEN
+  CLOSED
+  BLOCKED
+  SUSPENDED
+  --
+  + toString() : String
+}
+
+class Transaction {
+  - id : Long
+  - type : TransactionType
+  - amount : BigDecimal
+  - label : String
+  - date : LocalDateTime
+  --
+  + getAmount() : BigDecimal
+  + getDate() : LocalDateTime
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
+  TRANSFER_IN
+  TRANSFER_OUT
+  --
+  + toString() : String
+}
+
+' Relationships
+User "1" -- "0..1" Client : owns >
+User "1" -- "*" Role : has >
+
+Client "1" -- "*" Account : possesses >
+Account "1" -- "*" Transaction : contains >
+
+Account -- AccountStatus : status
+Transaction -- TransactionType : type
+
+note right of Account
+  Business Rules:
+  - RIB must be unique
+  - Balance cannot be negative
+  - Transactions are atomic
+  - Status changes are logged
+end note
+
+note right of Transaction
+  Audit Trail:
+  - All transactions recorded
+  - Immutable once created
+  - Linked to account
+  - Timestamped
+end note
+
+note top of User
+  Security:
+  - Password encrypted with BCrypt
+  - JWT-based authentication
+  - Role-based access control
+end note
+
+@enduml

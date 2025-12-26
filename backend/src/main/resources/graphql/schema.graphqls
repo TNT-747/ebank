@@ -1,0 +1,43 @@
+type Query {
+    "Get account by ID"
+    getAccountById(id: ID!): Account
+    
+    "Get account by RIB (Bank Account Number)"
+    getAccountByRib(rib: String!): Account
+    
+    "Get accounts by client ID"
+    getAccountsByClientId(clientId: ID!): [Account!]!
+}
+
+type Mutation {
+    "Create a new bank account"
+    createAccount(input: CreateAccountInput!): Account!
+}
+
+type Account {
+    "Unique identifier"
+    id: ID!
+    
+    "Bank account number (RIB)"
+    rib: String!
+    
+    "Current balance"
+    balance: String!
+    
+    "Account status"
+    status: String!
+    
+    "Creation timestamp"
+    createdAt: String!
+    
+    "Full name of the account owner"
+    clientName: String!
+}
+
+input CreateAccountInput {
+    "Bank account number (RIB)"
+    rib: String!
+    
+    "Client identity number"
+    identityNumber: String!
+}

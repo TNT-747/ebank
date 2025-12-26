@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://ebank.com/soap/accounts"
+           targetNamespace="http://ebank.com/soap/accounts"
+           elementFormDefault="qualified">
+
+    <!-- Account Type Definition -->
+    <xs:complexType name="accountType">
+        <xs:sequence>
+            <xs:element name="id" type="xs:long"/>
+            <xs:element name="rib" type="xs:string"/>
+            <xs:element name="balance" type="xs:decimal"/>
+            <xs:element name="status" type="xs:string"/>
+            <xs:element name="createdAt" type="xs:dateTime"/>
+            <xs:element name="clientName" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Get Account By RIB Request -->
+    <xs:element name="getAccountByRibRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="rib" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get Account By RIB Response -->
+    <xs:element name="getAccountByRibResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="account" type="tns:accountType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get Account By ID Request -->
+    <xs:element name="getAccountByIdRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:long"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get Account By ID Response -->
+    <xs:element name="getAccountByIdResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="account" type="tns:accountType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create Account Request -->
+    <xs:element name="createAccountRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="rib" type="xs:string"/>
+                <xs:element name="identityNumber" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create Account Response -->
+    <xs:element name="createAccountResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="account" type="tns:accountType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

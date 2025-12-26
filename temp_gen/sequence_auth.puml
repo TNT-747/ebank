@@ -1,0 +1,47 @@
+@startuml
+title Sequence Diagram: JWT Authentication
+
+actor Client
+participant "Auth Controller" as Controller
+participant "Auth Service" as Service
+participant "User Repository" as Repo
+participant "JWT Util" as JWT
+
+Client -> Controller: POST /auth/login\n{username, password}
+activate Controller
+
+Controller -> Service: authenticate(username, password)
+activate Service
+
+Service -> Repo: findByUsername(username)
+activate Repo
+Repo --> Service: User entity
+deactivate Repo
+
+Service -> Service: validatePassword(password)
+note right: BCrypt verification
+
+alt Invalid credentials
+    Service --> Controller: AuthenticationException
+    Controller --> Client: 401 Unauthorized
+else Valid credentials
+    Service -> JWT: generateToken(user)
+    activate JWT
+    
+    JWT -> JWT: createClaims(user)
+    note right: Add user info,\nroles, expiration
+    
+    JWT -> JWT: signToken(claims, secretKey)
+    note right: HMAC-SHA256\nsigning
+    
+    JWT --> Service: JWT Token String
+    deactivate JWT
+    
+    Service --> Controller: AuthResponse\n{token, expiresIn}
+    deactivate Service
+    
+    Controller --> Client: 200 OK\n{token, username, roles}
+    deactivate Controller
+end
+
+@enduml

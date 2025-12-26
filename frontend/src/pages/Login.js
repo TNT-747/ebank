@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
 import './Login.css';
 
 const Login = () => {
@@ -44,9 +45,8 @@ const Login = () => {
 
             <div className="login-card animate-slideUp">
                 <div className="login-header">
-                    <span className="login-icon">🏦</span>
-                    <h1 className="login-title">Kassimi Bank</h1>
-                    <p className="login-subtitle">Votre banque de confiance</p>
+                    <Logo size="large" showText={true} />
+                    <p className="login-subtitle">Votre partenaire bancaire de confiance</p>
                 </div>
 
                 {location.state?.message && (

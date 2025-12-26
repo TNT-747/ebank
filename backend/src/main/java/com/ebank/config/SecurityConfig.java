@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/ws/**", "/ws/*.wsdl").permitAll()
+                        .requestMatchers("/graphql", "/graphiql").permitAll()
                         .requestMatchers("/api/clients/**").hasRole("AGENT_GUICHET")
                         .requestMatchers("/api/accounts/create").hasRole("AGENT_GUICHET")
                         .requestMatchers("/api/dashboard/**").hasRole("CLIENT")

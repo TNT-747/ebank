@@ -1,0 +1,472 @@
+\documentclass[12pt,a4paper]{report}
+
+% ====== Préambule ======
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{lettrine}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{listings}
+\usepackage{tikz}
+
+% Configuration des listings pour le code Java/Spring
+\lstset{
+    language=Java,
+    backgroundcolor=\color{gray!10},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    commentstyle=\color{green!60!black},
+    keywordstyle=\color{blue!80!black},
+    stringstyle=\color{red!70!black},
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    stepnumber=1,
+    frame=single,
+    rulecolor=\color{black!30},
+    showstringspaces=false,
+    tabsize=2,
+    literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ç}{{\c c}}1
+}
+
+% Chemins des images
+\graphicspath{{images/}{figures/}{Interfaces/}}
+
+\setlist[itemize]{noitemsep,topsep=2pt}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\titlespacing*{\chapter}{0pt}{0.5em}{1em}
+
+% Cadre gris clair
+\definecolor{LightGray}{gray}{0.92}
+\newenvironment{graybox}{\def\FrameCommand{\fboxrule=0pt \fcolorbox{LightGray}{LightGray}}\MakeFramed{\advance\hsize-2\fboxsep\FrameRestore}}{\endMakeFramed}
+
+% Identifiants
+\newcommand{\appname}{\textbf{eBank}}
+\newcommand{\auteur}{\textbf{Abderrahmane KASSIMI}}
+\newcommand{\ecole}{\textbf{École Marocaine des Sciences de l'Ingénieur (EMSI)}}
+\newsavebox{\projectbox}
+
+\begin{document}
+
+% ====== Page de titre ======
+\begin{titlepage}
+    \centering
+    {\Large \ecole\\[0.3cm]}
+    {\large Filière : \textbf{Ingénierie Informatique et Réseaux (IIR)}\\[1cm]}
+    {\Huge \textbf{Rapport Technique}\\[0.5cm]}
+    {\large Projet Architecture Distribuée\\[1cm]}
+    {\Large \textbf{Sujet :} Plateforme Bancaire Multi-Protocoles \appname\\[1.5cm]}
+    
+    \begin{flushleft}
+        \large
+        \textbf{Développeur :} \auteur\\[5pt]
+        \textbf{Technologies :} Spring Boot, React, MySQL, Docker\\[5pt]
+        \textbf{Protocoles :} REST, SOAP, gRPC, GraphQL\\[5pt]
+        \textbf{Architecture :} Micro-services / N-Tiers
+    \end{flushleft}
+    \vfill
+    {\large \textbf{Année académique :} 2024--2025\par}
+\end{titlepage}
+
+% ====== Résumé ======
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+Ce rapport présente la conception et le développement de \appname{}, une plateforme bancaire moderne et robuste. L'application backend, développée avec Spring Boot, expose des services via quatre protocoles de communication différents : API REST, Service Web SOAP, gRPC et GraphQL, démontrant une interopérabilité maximale. Le frontend est réalisé avec React pour offrir une interface utilisateur dynamique. L'ensemble est conteneurisé avec Docker pour faciliter le déploiement. Ce projet met en lumière la capacité à intégrer des technologies hétérogènes au sein d'une même architecture unifiée, répondant ainsi aux exigences complexes des systèmes d'information bancaires actuels.
+
+\chapter*{Résumé exécutif}
+\addcontentsline{toc}{chapter}{Résumé exécutif}
+Ce document détaille l'architecture technique, les choix de conception et l'implémentation d'un système bancaire digital complet. L'étude couvre en profondeur l'implémentation d'une architecture N-Tiers modulaire, la gestion avancée de la sécurité via JWT, et l'intégration de multiples interfaces de communication pour répondre aux besoins variés des clients, qu'il s'agisse d'applications Web, Mobiles ou de partenaires B2B. Nous abordons également les stratégies de déploiement via Docker, assurant la portabilité et la scalabilité de la solution.
+
+% ====== Table des matières ======
+\tableofcontents
+\listoffigures
+
+% ====== Liste des abréviations ======
+\chapter*{Liste des abréviations}
+\addcontentsline{toc}{chapter}{Liste des abréviations}
+\begin{description}[labelwidth=3cm,labelsep=0.5cm,leftmargin=3.5cm,font=\bfseries]
+  \item[API] Application Programming Interface
+  \item[REST] Representational State Transfer
+  \item[SOAP] Simple Object Access Protocol
+  \item[gRPC] Google Remote Procedure Call
+  \item[GraphQL] Graph Query Language
+  \item[JWT] JSON Web Token
+  \item[DTO] Data Transfer Object
+  \item[JPA] Java Persistence API
+  \item[SQL] Structured Query Language
+  \item[UI] User Interface
+  \item[WSDL] Web Services Description Language
+  \item[IOC] Inversion Of Control
+  \item[DI] Dependency Injection
+\end{description}
+
+% ====== Remerciements ======
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+Je tiens à remercier le corps professoral de l'EMSI pour leur encadrement de qualité et leur soutien continu tout au long de ce projet. Mes remerciements vont également à la communauté open-source, notamment les contributeurs de Spring, React et Docker, pour les outils puissants et la documentation riche qui ont permis la réalisation de ce projet ambitieux. Enfin, je remercie tous ceux qui ont contribué de près ou de loin à l'aboutissement de ce travail.
+
+% ====== Introduction Générale ======
+\chapter*{Introduction Générale}
+\addcontentsline{toc}{chapter}{Introduction Générale}
+\noindent\lettrine[lines=3,loversize=0.12]{\textbf{L}}{}a transformation numérique du secteur bancaire impose des exigences croissantes en termes de flexibilité, de performance et d'interopérabilité. Les systèmes d'information modernes ne peuvent plus se contenter d'une seule interface monolithique ; ils doivent être capables de communiquer de manière fluide et sécurisée avec une grande variété de clients, allant des applications web et mobiles grand public aux systèmes partenaires hérités (Legacy) et aux micro-services internes à haute performance.
+
+Le projet \appname{} a été conçu pour répondre précisément à cette problématique complexe en proposant une architecture backend unifiée et modulaire. Cette architecture est capable d'exposer ses fonctionnalités métier via quatre protocoles aux paradigmes fondamentalement différents : REST, qui est le standard du web actuel ; SOAP, souvent requis par les systèmes d'entreprise existants ; gRPC, privilégié pour sa performance dans les communications inter-services ; et GraphQL, qui offre une flexibilité inégalée pour l'interrogation des données par les clients frontaux.
+
+Ce rapport s'articule autour de quatre axes principaux qui retracent le cycle de vie du projet. Nous débuterons par la présentation du contexte et des objectifs, justifiant les choix technologiques opérés. Ensuite, nous détaillerons l'étude conceptuelle à travers les diagrammes UML. L'architecture technique sera ensuite décortiquée pour expliquer comment cohabitent ces différents protocoles. Enfin, la phase de réalisation mettra en lumière les défis techniques relevés lors de l'intégration et du déploiement de la solution.
+
+% ====== Chapitre 1 : Présentation du projet ======
+\chapter{Présentation générale du projet}
+
+\section{Introduction}
+\appname{} se positionne comme une solution bancaire démonstratrice conçue pour gérer les opérations financières courantes telles que la gestion des comptes, le traitement des transactions et l'administration des données clients. Au-delà de ses fonctionnalités métier, le projet a pour ambition technique majeure de prouver la faisabilité d'une architecture où une logique métier unique est partagée et distribuée à travers de multiples canaux de communication, garantissant ainsi la maintenabilité et l'absence de duplication de code (principe DRY - Don't Repeat Yourself).
+
+\section{Contexte technologique}
+Le développement de l'application s'appuie sur une pile technologique robuste et éprouvée, sélectionnée pour sa pertinence dans le contexte industriel actuel. 
+
+Le framework \textbf{Spring Boot} a été choisi comme socle du développement backend. Sa capacité à simplifier la configuration, son conteneur d'inversion de contrôle (IoC) et son vaste écosystème en font le standard de facto pour le développement d'applications Java Enterprise modernes. Il permet une intégration transparente des différents modules nécessaires comme la sécurité, l'accès aux données et l'exposition des services web.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{tech_stack_spring.png}
+\caption{Écosystème Spring Boot}
+\end{figure}
+
+Côté interface utilisateur, la bibliothèque \textbf{React} a été privilégiée pour construire une Single Page Application (SPA) dynamique et réactive. Le paradigme basé sur les composants de React facilite la création d'interfaces modulaires et maintenables, essentielles pour offrir une expérience utilisateur fluide.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{tech_stack_react.png}
+\caption{Architecture React}
+\end{figure}
+
+Enfin, l'aspect déploiement et infrastructure est géré par \textbf{Docker}. La conteneurisation de l'application, de la base de données et du serveur web assure que l'environnement de développement est strictement identique à l'environnement de production, éliminant ainsi les problèmes de compatibilité et facilitant la scalabilité horizontale des services.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{tech_stack_docker.png}
+\caption{Infrastructure Docker et Base de Données}
+\end{figure}
+
+\section{Objectifs du projet}
+Les objectifs de ce projet sont multiples et couvrent à la fois des aspects fonctionnels et techniques.
+
+Premièrement, l'objectif de \textbf{centralisation métier} vise à implémenter une couche de service unique qui encapsule toutes les règles de gestion (validation de solde, exécution atomique des virements, vérification des comptes). Cette couche doit rester totalement indépendante de la manière dont elle est appelée.
+
+Deuxièmement, le défi du \textbf{multi-protocole} consiste à exposer ces services via REST, SOAP, gRPC et GraphQL simultanément. Cela nécessite une architecture capable de traduire les requêtes de chaque protocole vers les objets du domaine interne, puis de renvoyer les réponses dans le format approprié.
+
+Troisièmement, la \textbf{sécurité} est un pilier fondamental. L'objectif est de mettre en place une authentification Stateless utilisant les JSON Web Tokens (JWT). Cela permet de sécuriser les API sans conserver d'état session côté serveur, ce qui est crucial pour la scalabilité.
+
+\section{Stack technologique détaillée}
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+    \centering
+    \vspace{0.5cm}
+    \textbf{STACK TECHNOLOGIQUE}\\[0.8cm]
+    
+    \begin{tabular}{|l|l|l|}
+    \hline
+    \textbf{Domaine} & \textbf{Technologie} & \textbf{Détails} \\
+    \hline
+    Backend & Java 17, Spring Boot 3.2 & Core Framework \\
+    \hline
+    SGBD & MySQL 8.0 & Persistance des données \\
+    \hline
+    Frontend & React 18, Axios & Interface Client \\
+    \hline
+    Protocole 1 & Spring Web MVC & API RESTful \\
+    \hline
+    Protocole 2 & Spring Web Services & SOAP (XML) \\
+    \hline
+    Protocole 3 & grpc-spring-boot & gRPC (Protobuf) \\
+    \hline
+    Protocole 4 & Spring GraphQL & GraphQL API \\
+    \hline
+    Sécurité & Spring Security, JJWT & Auth JWT \\
+    \hline
+    DevOps & Docker, Docker Compose & Déploiement \\
+    \hline
+    \end{tabular}
+    \vspace{0.5cm}
+}}
+\caption{Technologies principales du projet eBank}
+\end{figure}
+
+% ====== Chapitre 2 : Conception ======
+\chapter{Étude conceptuelle}
+
+\section{Introduction}
+La phase de conception est une étape critique qui permet de formaliser les besoins du système et de structurer les données avant d'entamer le développement. Nous utilisons le langage de modélisation unifié (UML) pour représenter visuellement les aspects statiques (données) et dynamiques (comportements) du système.
+
+\section{Analyse fonctionnelle}
+
+\subsection{Identification des acteurs}
+Le système interagit avec plusieurs types d'acteurs. L'\textbf{Client} est l'utilisateur final qui se connecte pour consulter l'état de ses comptes et initier des virements bancaires. L'\textbf{Administrateur} possède des privilèges élevés lui permettant de gérer le parc des comptes clients, de valider des opérations sensibles et de superviser l'ensemble des transactions. Enfin, les \textbf{Systèmes Externes} représentent les partenaires bancaires ou les applications tierces qui consomment les services de la banque via les protocoles SOAP ou gRPC pour des opérations automatisées B2B (Business-to-Business).
+
+\subsection{Diagramme de cas d'utilisation}
+Le diagramme de cas d'utilisation global synthétise les fonctionnalités offertes par le système. Il met en évidence les interactions principales telles que l'authentification sécurisée, indispensable pour accéder à toute autre fonctionnalité. Une fois connectés, les utilisateurs peuvent consulter leur solde et l'historique de leurs transactions en temps réel. Le cœur du système réside dans la capacité à effectuer des virements compte à compte de manière atomique. L'administrateur, quant à lui, dispose de cas d'utilisation spécifiques pour la création et la clôture de comptes bancaires.
+
+\begin{figure}[H]
+\centering
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{use_case_diagram.png}
+\caption{Diagramme de cas d'utilisation global}
+\end{figure}
+\caption{Diagramme de cas d'utilisation global}
+\end{figure}
+
+\section{Diagramme de classes}
+Le diagramme de classes définit la structure statique des données manipulées par l'application. Le modèle s'articule autour de l'entité \texttt{Customer}, qui représente le client avec ses informations personnelles. Chaque client peut posséder plusieurs \texttt{BankAccount}, caractérisés par un solde, une devise, un type (Courant/Épargne) et un état (Actif/Bloqué/Suspendu). Les mouvements financiers sont tracés via l'entité \texttt{AccountTransaction}, qui enregistre le montant, la date, le type de transaction (Débit/Crédit) et le compte associé. Cette modélisation assure l'intégrité référentielle et la cohérence des données financières.
+
+\begin{figure}[H]
+\centering
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{class_diagram.png}
+\caption{Diagramme de classes - Modèle de données}
+\end{figure}
+\caption{Diagramme de classes - Modèle de données}
+\end{figure}
+
+\section{Modélisation dynamique}
+
+\subsection{Diagramme de séquence - Virement}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{sequence_transfer.png}
+\caption{Diagramme de séquence - Virement bancaire}
+\end{figure}
+
+Le diagramme de séquence illustrant un virement bancaire détaille le flux chronologique des messages. Le processus débute par la requête du client, suivie de la vérification du solde par la couche service. Si le solde est suffisant, le système effectue deux opérations atomiques : le débit du compte source et le crédit du compte destination. Enfin, une notification de succès est renvoyée au client. Ce diagramme est crucial pour comprendre la gestion transactionnelle du système.
+
+\subsection{Diagramme de séquence - Authentification JWT}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{sequence_auth.png}
+\caption{Diagramme de séquence - Authentification JWT}
+\end{figure}
+
+Ce diagramme illustre le mécanisme d'authentification basé sur les JSON Web Tokens. L'utilisateur soumet ses credentials au contrôleur d'authentification, qui délègue la validation au service d'authentification. Après vérification du mot de passe avec BCrypt, un JWT est généré contenant les informations utilisateur et les rôles. Ce token est ensuite retourné au client, qui l'utilisera pour authentifier les requêtes ultérieures sans maintenir de session côté serveur.
+
+\subsection{Diagramme de séquence - Création de compte}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{sequence_create_account.png}
+\caption{Diagramme de séquence - Création de compte bancaire}
+\end{figure}
+
+Ce diagramme présente le processus complet de création d'un nouveau compte bancaire par un administrateur. Le système valide d'abord l'existence du client, génère un RIB unique (numéro de compte bancaire à 24 chiffres), crée le compte avec un statut OUVERT, et enregistre une transaction de crédit initiale si le solde de départ est supérieur à zéro. Cette séquence assure l'intégrité des données et la traçabilité de toutes les opérations.
+
+% ====== Chapitre 3 : Architecture ======
+\chapter{Architecture du projet}
+
+\section{Introduction}
+L'architecture logicielle de \appname{} a été pensée pour être modulaire, évolutive et maintenable. Nous avons adopté une architecture en couches (N-Tiers) classique, renforcée par des principes de Clean Architecture pour isoler le cœur métier. La particularité de ce projet réside dans sa couche de présentation "polymorphe", capable de servir plusieurs protocoles simultanément.
+
+\section{Organisation en Couches}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{architecture_layers.png}
+\caption{Architecture en couches du backend eBank}
+\end{figure}
+
+\section{Vue d'ensemble de l'architecture système}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{architecture_overview.png}
+\caption{Architecture système complète - Frontend, Backend, Database}
+\end{figure}
+
+Cette vue d'ensemble présente l'architecture complète du système eBank, illustrant les interactions entre les trois conteneurs Docker : le frontend React servi par Nginx, le backend Spring Boot exposant les quatre protocoles, et la base de données MySQL. Les flux de communication sont clairement identifiés, montrant comment les clients web accèdent au système via HTTPS, tandis que les systèmes externes peuvent utiliser SOAP ou gRPC pour l'intégration B2B.
+
+\section{Diagramme de composants}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{component_diagram.png}
+\caption{Diagramme de composants - Organisation modulaire}
+\end{figure}
+
+Le diagramme de composants illustre l'organisation modulaire du système eBank. Il met en évidence les différents modules du backend (controllers, services, repositories), leurs dépendances et leurs interactions. Cette modularité facilite la maintenance et l'évolution du système en permettant de modifier ou remplacer des composants de manière indépendante.
+
+\section{Diagramme de déploiement}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{deployment_diagram.png}
+\caption{Diagramme de déploiement - Infrastructure Docker}
+\end{figure}
+
+Ce diagramme présente l'infrastructure de déploiement basée sur Docker. Il montre comment les différents conteneurs (frontend Nginx, backend Spring Boot, base de données MySQL) sont orchestrés via Docker Compose, leurs ports d'exposition et les volumes de persistance. Cette architecture conteneurisée garantit la portabilité et facilite le déploiement dans différents environnements.
+
+\section{Modèle de données}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{er_diagram.png}
+\caption{Diagramme entité-relation - Schéma de base de données}
+\end{figure}
+
+Le diagramme entité-relation décrit le schéma complet de la base de données MySQL. Il présente les tables principales (users, clients, accounts, transactions), leurs attributs, les clés primaires et étrangères, ainsi que les relations entre entités. Ce modèle assure l'intégrité référentielle et la cohérence des données bancaires.
+
+\subsection{Couche d'Exposition (Presentation Layer)}
+Cette couche supérieure est le point d'entrée unique des requêtes externes. Elle est responsable de la réception des messages, de la validation syntaxique des entrées et de la transformation des DTOs (Data Transfer Objects). Elle est divisée en quatre modules distincts. Le \texttt{RestController} gère les requêtes HTTP JSON standards pour les clients Web et Mobile. Le \texttt{SoapEndpoint} traite les enveloppes XML pour les interactions SOAP. Le \texttt{GrpcService} implémente les stubs générés par Protobuf pour les communications binaires haute performance. Enfin, le \texttt{GraphqlController} permet aux clients de composer leurs propres requêtes de données.
+
+\subsection{Couche Service (Business Layer)}
+La couche Service représente le cœur logico-métier de l'application. Située dans le package \texttt{com.ebank.service}, elle contient l'intégralité des règles de gestion bancaire. Elle est totalement agnostique des protocoles de communication utilisés en amont, ce qui garantit que la logique métier (comme les règles de virement) est implémentée une seule fois et utilisée partout. C'est également à ce niveau que sont gérées les transactions de base de données (annotation \texttt{@Transactional}), assurant l'atomicité des opérations financières.
+
+\subsection{Couche d'Accès aux Données (Data Access Layer)}
+La couche de persistance s'appuie sur le framework Spring Data JPA pour abstraire les interactions avec la base de données relationnelle MySQL. Les interfaces Repositories étendent \texttt{JpaRepository}, fournissant nativement les opérations CRUD (Create, Read, Update, Delete) sans nécessiter de code SQL manuel. Cette abstraction facilite également la migration potentielle vers d'autres types de bases de données et simplifie l'écriture des tests d'intégration.
+
+\section{Structure du projet (Backend)}
+\begin{figure}[H]
+\centering
+\begin{lrbox}{\projectbox}
+    \begin{minipage}{0.85\textwidth}
+    \centering
+    \vspace{0.3cm}
+    \textbf{STRUCTURE BACKEND}\\[0.5cm]
+    \begin{lstlisting}[language=,numbers=none,frame=none,backgroundcolor=\color{white}]
+src/main/java/com/ebank/
+  config/          # Configuration des Beans (WSDL, gRPC, Security)
+  controller/      # Contrôleurs pour l'API REST
+  dto/             # Objets de transfert de données (indépendants des entités)
+  entity/          # Entités JPA mappant les tables de la DB
+  exception/       # Gestion centralisée des exceptions
+  graphql/         # Définitions des types et Resolvers GraphQL
+  grpc/            # Implémentation des services gRPC
+  repository/      # Interfaces d'accès aux données (Spring Data)
+  security/        # Configuration JWT et filtres de sécurité
+  service/         # Logique métier et transactionnelle
+  soap/            # Endpoints SOAP et configuration CXF/JAX-WS
+    \end{lstlisting}
+    \vspace{0.3cm}
+    \end{minipage}
+\end{lrbox}
+\fbox{\usebox{\projectbox}}
+\caption{Organisation des packages Java}
+\end{figure}
+
+% ====== Chapitre 4 : Réalisation ======
+\chapter{Réalisation}
+
+\section{Backend : Implémentation Multi-Protocoles}
+
+\subsection{API REST}
+L'API REST constitue l'interface principale pour l'application frontend. Elle est implémentée en utilisant les annotations standard de Spring Web telles que \texttt{@RestController}, \texttt{@GetMapping}, et \texttt{@PostMapping}. Cette API respecte les conventions RESTful, utilisant les verbes HTTP appropriés et les codes de statut pour communiquer le résultat des opérations. Les données sont échangées au format JSON, assurant une compatibilité maximale avec les frameworks JavaScript modernes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{protocol_rest.png}
+\caption{Architecture REST API}
+\end{figure}
+
+\subsection{Service SOAP}
+Pour assurer la compatibilité avec les systèmes d'ancienne génération, un service SOAP a été mis en place. Il repose sur un contrat formel défini par un fichier WSDL (Web Services Description Language), généré automatiquement à partir de schémas XSD. Ce contrat strict garantit que les messages XML échangés respectent une structure précise, ce qui est souvent une exigence forte dans les environnements d'entreprise traditionnels pour assurer la stabilité des échanges.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{protocol_soap.png}
+\caption{Structure SOAP Web Service}
+\end{figure}
+
+\subsection{Service gRPC}
+Le service gRPC répond aux besoins de performance et d'efficacité. Il est défini à l'aide de fichiers \texttt{.proto}, qui permettent de générer automatiquement le code client et serveur dans plusieurs langages. Grâce à la sérialisation binaire Protocol Buffers et à l'utilisation du protocole HTTP/2, les échanges de données sont extrêmement rapides et consomment moins de bande passante que les formats textuels. Cette interface est idéale pour la communication inter-services dans une architecture micro-services.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{protocol_grpc.png}
+\caption{Communication gRPC et Protobuf}
+\end{figure}
+
+\subsection{API GraphQL}
+L'API GraphQL offre une approche centrée sur la donnée, donnant le pouvoir au client de spécifier exactement les informations dont il a besoin. Contrairement à REST où les endpoints sont fixes, GraphQL permet de récupérer en une seule requête des données complexes et imbriquées (par exemple, un client avec la liste de ses comptes et les dernières transactions de chaque compte). Cela résout efficacement les problèmes de "over-fetching" et "under-fetching" courants dans les API classiques.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{protocol_graphql.png}
+\caption{Requêtes flexibles avec GraphQL}
+\end{figure}
+
+\section{Frontend : Interface React}
+L'interface utilisateur a été développée avec React pour offrir une expérience fluide et interactive. Elle communique principalement avec le backend via l'API REST sécurisée par JWT. L'application propose six interfaces principales couvrant l'ensemble des fonctionnalités bancaires.
+
+\subsection{Page d'authentification}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{ui_login.png}
+\caption{Interface : Page de connexion}
+\end{figure}
+
+La page de connexion offre une interface sécurisée pour l'authentification des utilisateurs. Elle comporte des champs pour le nom d'utilisateur et le mot de passe, avec validation en temps réel. Après authentification réussie, un JWT est généré et stocké localement pour sécuriser les requêtes ultérieures.
+
+\subsection{Tableau de bord principal}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{ui_dashboard.png}
+\caption{Interface : Tableau de bord des comptes bancaires}
+\end{figure}
+
+Le tableau de bord affiche la liste complète des comptes bancaires de l'utilisateur avec leur solde actuel, type et statut. Chaque compte est présenté sous forme de carte interactive permettant d'accéder rapidement aux détails et à l'historique des transactions.
+
+\subsection{Formulaire de virement}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{ui_new_transfer.png}
+\caption{Interface : Formulaire de virement bancaire}
+\end{figure}
+
+Le formulaire de virement permet d'effectuer des transferts entre comptes. Il inclut des sélecteurs pour le compte source et destination, un champ montant avec validation du solde disponible, et une zone de description. La validation en temps réel garantit que le virement ne peut être effectué qu'avec un solde suffisant.
+
+\subsection{Création de compte bancaire}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{ui_new_account.png}
+\caption{Interface : Formulaire de création de compte}
+\end{figure}
+
+Cette interface permet aux administrateurs de créer de nouveaux comptes bancaires. Le formulaire propose la sélection du client propriétaire, le choix du type de compte (courant ou épargne), la définition du solde initial et de la devise. Un RIB unique est généré automatiquement lors de la création.
+
+\subsection{Enregistrement de client}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{ui_new_client.png}
+\caption{Interface : Formulaire d'enregistrement client}
+\end{figure}
+
+Le formulaire d'enregistrement client capture toutes les informations nécessaires pour créer un nouveau client dans le système : identité complète, numéro d'identification, date de naissance, coordonnées de contact (email, téléphone) et adresse. Des validations garantissent l'unicité du numéro d'identité et de l'email.
+
+\subsection{Modification du mot de passe}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{ui_change_password.png}
+\caption{Interface : Changement de mot de passe}
+\end{figure}
+
+Cette page permet aux utilisateurs de modifier leur mot de passe de manière sécurisée. Elle demande le mot de passe actuel pour authentification, puis le nouveau mot de passe avec confirmation. Un indicateur de force du mot de passe aide l'utilisateur à choisir un mot de passe robuste.
+
+\section{Déploiement avec Docker}
+La stratégie de déploiement repose sur Docker Compose, qui orchestre le lancement simultané de trois conteneurs distincts. Le premier conteneur héberge la base de données MySQL avec un volume persistant pour assurer la durabilité des données. Le second conteneur exécute l'application Spring Boot backend. Le troisième conteneur sert l'application React via un serveur Nginx léger. Cette configuration définit un environnement complet et isolé, permettant de démarrer l'ensemble de la plateforme avec une simple commande, garantissant ainsi la reproductibilité des déploiements.
+
+% ====== Conclusion Générale ======
+\chapter*{Conclusion Générale}
+\addcontentsline{toc}{chapter}{Conclusion Générale}
+La réalisation du projet \appname{} a permis d'explorer et de maîtriser les facettes complexes de l'ingénierie logicielle moderne. En relevant le défi de découpler la logique métier de la couche de présentation, nous avons réussi à bâtir une plateforme capable d'exposer les mêmes services bancaires via REST, SOAP, gRPC et GraphQL. Cette polyvalence est une compétence clé pour l'intégration de systèmes hétérogènes dans le paysage informatique actuel.
+
+L'écosystème Spring Boot a joué un rôle central en facilitant l'intégration de ces différentes technologies, tandis que la conteneurisation Docker a rationalisé le processus de déploiement. Côté utilisateur, l'interface React a permis de masquer la complexité backend derrière une expérience fluide et intuitive.
+
+En termes de perspectives, ce projet constitue une base solide pour évoluer vers une architecture micro-services distribuée plus vaste. L'ajout de composants tels qu'un serveur de découverte (Eureka), une passerelle API (Gateway) et des outils de monitoring (Prometheus/Grafana) permettrait de passer à l'échelle supérieure. De plus, l'intégration de tests automatisés plus poussés (tests unitaires et d'intégration) renforcerait encore la fiabilité du code produit.
+
+\end{document}

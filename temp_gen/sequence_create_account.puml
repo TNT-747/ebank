@@ -1,0 +1,70 @@
+@startuml
+title Sequence Diagram: Create Bank Account
+
+actor Administrator
+participant "REST Controller" as Controller
+participant "Account Service" as Service
+participant "Client Service" as ClientService
+participant "Account Repository" as AccountRepo
+participant "Client Repository" as ClientRepo
+database "MySQL Database" as DB
+
+Administrator -> Controller: POST /api/accounts\n{clientId, accountType, initialBalance}
+activate Controller
+
+Controller -> Controller: validateRequest()
+note right: Check required fields\nValidate account type\nValidate initial balance >= 0
+
+Controller -> Service: createAccount(CreateAccountDTO)
+activate Service
+
+Service -> ClientRepo: findById(clientId)
+activate ClientRepo
+ClientRepo -> DB: SELECT * FROM clients\nWHERE id=?
+DB --> ClientRepo: Client data
+deactivate ClientRepo
+ClientRepo --> Service: Client
+
+alt Client not found
+    Service --> Controller: ClientNotFoundException
+    Controller --> Administrator: 404 Not Found\n"Client does not exist"
+else Client found
+    Service -> Service: generateRIB()
+    note right: Generate unique\nRIB (Bank Account Number)\nFormat: 24 digits
+    
+    Service -> Service: createAccount()
+    note right: Create Account entity:\n- RIB\n- Balance = initialBalance\n- Status = OPEN\n- CreatedAt = now()
+    
+    Service -> AccountRepo: save(account)
+    activate AccountRepo
+    AccountRepo -> DB: INSERT INTO accounts\n(rib, balance, status, client_id, created_at)\nVALUES (?, ?, ?, ?, ?)
+    DB --> AccountRepo: Account saved
+    deactivate AccountRepo
+    AccountRepo --> Service: Account
+    
+    alt initialBalance > 0
+        Service -> Service: createInitialTransaction()
+        note right: Create CREDIT transaction\nfor initial deposit
+        
+        Service -> AccountRepo: saveTransaction(transaction)
+        activate AccountRepo
+        AccountRepo -> DB: INSERT INTO transactions\n(type, amount, label, date, account_id)\nVALUES ('CREDIT', ?, 'Initial deposit', ?, ?)
+        deactivate AccountRepo
+    end
+    
+    Service --> Controller: AccountDTO
+    deactivate Service
+    Controller --> Administrator: 201 Created\n{id, rib, balance, status, createdAt}
+    deactivate Controller
+end
+
+note over Administrator, DB
+  Account Types:
+  - CURRENT_ACCOUNT (Compte Courant)
+  - SAVINGS_ACCOUNT (Compte Épargne)
+  
+  Account Status after creation:
+  - OPEN (Active and ready to use)
+end note
+
+@enduml

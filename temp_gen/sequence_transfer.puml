@@ -1,0 +1,54 @@
+@startuml
+title Sequence Diagram: Fund Transfer
+
+actor Client
+participant "REST Controller" as Controller
+participant "Account Service" as Service
+participant "Account Repository" as Repo
+database "MySQL Database" as DB
+
+Client -> Controller: POST /api/transfer\n{sourceId, destId, amount}
+activate Controller
+
+Controller -> Service: transferFunds(sourceId, destId, amount)
+activate Service
+
+Service -> Service: validateTransfer()
+note right: Check amount > 0
+
+Service -> Repo: findById(sourceId)
+activate Repo
+Repo -> DB: SELECT * FROM accounts\nWHERE id=?
+DB --> Repo: Account data
+deactivate Repo
+Repo --> Service: Source Account
+
+Service -> Service: checkBalance()
+note right: Verify sufficient funds
+
+alt Insufficient funds
+    Service --> Controller: InsufficientBalanceException
+    Controller --> Client: 400 Bad Request
+else Sufficient funds
+    Service -> Repo: debit(sourceId, amount)
+    activate Repo
+    Repo -> DB: UPDATE accounts\nSET balance = balance - amount
+    deactivate Repo
+    
+    Service -> Repo: credit(destId, amount)
+    activate Repo
+    Repo -> DB: UPDATE accounts\nSET balance = balance + amount
+    deactivate Repo
+    
+    Service -> Repo: save(transaction)
+    activate Repo
+    Repo -> DB: INSERT INTO transactions
+    deactivate Repo
+    
+    Service --> Controller: TransferDTO
+    deactivate Service
+    Controller --> Client: 200 OK\n{transferId, status: "SUCCESS"}
+    deactivate Controller
+end
+
+@enduml

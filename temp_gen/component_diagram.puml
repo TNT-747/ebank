@@ -1,0 +1,68 @@
+@startuml
+title eBank Component Diagram
+
+skinparam componentStyle rectangle
+
+package "Frontend" #LightBlue {
+  [React Components] as ReactComp
+  [State Management\nContext API] as State
+  [HTTP Client\nAxios] as HttpClient
+}
+
+package "Backend - Presentation" #LightGreen {
+  [REST Controllers] as RESTCtrl
+  [SOAP Endpoints] as SOAPEndpoint
+  [gRPC Services] as GRPCService  
+  [GraphQL Resolvers] as GraphQLResolver
+}
+
+package "Backend - Security" #Pink {
+  [JWT Filter] as JWTFilter
+  [Authentication Manager] as AuthMgr
+  [User Details Service] as UserDetails
+}
+
+package "Backend - Business Logic" #LightYellow {
+  [Account Service] as AccService
+  [Customer Service] as CustService
+  [Transaction Service] as TxService
+  [Auth Service] as AuthService
+}
+
+package "Backend - Data Access" #LightCyan {
+  [JPA Repositories] as Repos
+  [Entity Models] as Entities
+  [Data Initializer] as DataInit
+}
+
+database "MySQL Database" as DB #LightGray
+
+ReactComp --> HttpClient
+HttpClient --> RESTCtrl : HTTPS/JSON
+
+RESTCtrl --> JWTFilter
+SOAPEndpoint --> JWTFilter
+GRPCService --> JWTFilter
+GraphQLResolver --> JWTFilter
+
+JWTFilter --> AuthMgr
+AuthMgr --> UserDetails
+AuthMgr --> AuthService
+
+RESTCtrl --> AccService
+RESTCtrl --> CustService
+SOAPEndpoint --> AccService
+GRPCService --> AccService
+GraphQLResolver --> AccService
+GraphQLResolver --> TxService
+
+AccService --> Repos
+CustService --> Repos
+TxService --> Repos
+AuthService --> Repos
+
+Repos --> Entities
+Entities --> DB
+DataInit --> Repos
+
+@enduml

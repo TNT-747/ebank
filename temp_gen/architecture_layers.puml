@@ -1,0 +1,51 @@
+@startuml
+title eBank Layered Architecture
+
+package "Presentation Layer" #LightBlue {
+  [REST Controller\n@RestController\nJSON/HTTP] as REST
+  [SOAP Endpoint\n@Endpoint\nXML/WSDL] as SOAP
+  [gRPC Service\n@GrpcService\nProtobuf/HTTP2] as GRPC
+  [GraphQL Resolver\n@Controller\nGraphQL Schema] as GQL
+}
+
+package "Security Layer" #Pink {
+  [JWT Filter\nAuthentication\nAuthorization] as JWT
+}
+
+package "Service Layer\nBusiness Logic & Transaction Management" #LightGreen {
+  [Account Service\n@Service\n@Transactional] as AccountSvc
+  [Customer Service\n@Service\n@Transactional] as CustomerSvc
+  [Transaction Service\n@Service\n@Transactional] as TxSvc
+}
+
+package "Data Access Layer\nSpring Data JPA" #LightYellow {
+  [Account Repository\nextends JpaRepository] as AccountRepo
+  [Customer Repository\nextends JpaRepository] as CustomerRepo
+  [Transaction Repository\nextends JpaRepository] as TxRepo
+}
+
+database "MySQL 8.0 Database\nTables: customers, bank_accounts,\ntransactions, users" as DB
+
+JWT -down-> REST
+JWT -down-> SOAP
+JWT -down-> GRPC
+JWT -down-> GQL
+
+REST -down-> AccountSvc
+REST -down-> CustomerSvc
+SOAP -down-> AccountSvc
+GRPC -down-> AccountSvc
+GQL -down-> AccountSvc
+GQL -down-> CustomerSvc
+GQL -down-> TxSvc
+
+AccountSvc -down-> AccountRepo
+AccountSvc -down-> TxRepo
+CustomerSvc -down-> CustomerRepo
+TxSvc -down-> TxRepo
+
+AccountRepo -down-> DB
+CustomerRepo -down-> DB
+TxRepo -down-> DB
+
+@enduml

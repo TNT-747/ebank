@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -20,8 +21,7 @@ const Navbar = () => {
         <nav className="navbar">
             <div className="navbar-container">
                 <Link to="/" className="navbar-brand">
-                    <span className="brand-icon">🏦</span>
-                    <span className="brand-text">Kassimi Bank</span>
+                    <Logo size="small" showText={true} />
                 </Link>
 
                 <button

@@ -1,0 +1,79 @@
+@startuml
+title eBank Entity-Relationship Diagram
+
+entity "users" as users {
+  * id : BIGINT <<PK>>
+  --
+  * username : VARCHAR(50)
+  * password : VARCHAR(100)
+  * enabled : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+entity "roles" as roles {
+  * id : BIGINT <<PK>>
+  --
+  * name : VARCHAR(50)
+}
+
+entity "user_roles" as user_roles {
+  * user_id : BIGINT <<FK>>
+  * role_id : BIGINT <<FK>>
+}
+
+entity "customers" as customers {
+  * id : BIGINT <<PK>>
+  --
+  * name : VARCHAR(100)
+  * email : VARCHAR(100)
+  phone : VARCHAR(20)
+  created_at : TIMESTAMP
+  user_id : BIGINT <<FK>>
+}
+
+entity "bank_accounts" as bank_accounts {
+  * id : VARCHAR(50) <<PK>>
+  --
+  * balance : DOUBLE
+  * currency : VARCHAR(3)
+  * type : VARCHAR(20)
+  * status : VARCHAR(20)
+  created_at : TIMESTAMP
+  * customer_id : BIGINT <<FK>>
+}
+
+entity "account_transactions" as transactions {
+  * id : BIGINT <<PK>>
+  --
+  * amount : DOUBLE
+  * date : TIMESTAMP
+  * type : VARCHAR(10)
+  description : VARCHAR(255)
+  * account_id : VARCHAR(50) <<FK>>
+}
+
+users ||--o{ user_roles
+roles ||--o{ user_roles
+users ||--o| customers : "owns"
+
+customers ||--o{ bank_accounts : "has"
+bank_accounts ||--o{ transactions : "contains"
+
+note right of bank_accounts
+  Account Types:
+  - CURRENT_ACCOUNT
+  - SAVINGS_ACCOUNT
+  
+  Account Status:
+  - ACTIVE
+  - BLOCKED
+  - SUSPENDED
+end note
+
+note right of transactions
+  Transaction Types:
+  - DEBIT
+  - CREDIT
+end note
+
+@enduml

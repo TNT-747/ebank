@@ -1,0 +1,53 @@
+@startuml
+title eBank Deployment Diagram
+
+node "Docker Host" {
+  
+  node "frontend-nginx container\nnginx:alpine" #LightBlue {
+    artifact "React Build\nStatic Files" as ReactBuild
+    component "Nginx\nWeb Server\nPort: 80, 443" as Nginx
+    Nginx --> ReactBuild
+  }
+  
+  node "backend-spring container\nopenjdk:17-jre-alpine" #LightGreen {
+    artifact "ebank.jar\nSpring Boot App" as SpringJar
+    component "Embedded Tomcat\nPort: 8080" as Tomcat
+    component "gRPC Server\nPort: 9090" as GRPCServer
+    Tomcat --> SpringJar
+    GRPCServer --> SpringJar
+  }
+  
+  node "db-mysql container\nmysql:8" #LightGray {
+    artifact "MySQL Data\nVolume Mount" as MySQLData
+    database "MySQL Server\nPort: 3306" as MySQL
+    MySQL --> MySQLData
+  }
+  
+  cloud "Docker Network\nebank-network" as Network #LightCyan {
+  }
+  
+  Nginx -down-> Network : HTTP
+  Tomcat -down-> Network : TCP
+  GRPCServer -down-> Network : HTTP/2
+  MySQL -down-> Network : TCP/3306
+}
+
+actor "Web Browser" as Browser
+actor "Mobile App" as Mobile
+actor "External System" as External
+
+Browser -right-> Nginx : HTTPS:443
+Mobile -right-> Nginx : HTTPS:443
+External -right-> GRPCServer : gRPC:9090
+External -right-> Tomcat : SOAP:8080
+
+note right of "Docker Host"
+  Docker Compose orchestrates
+  all three containers with:
+  - Shared network
+  - Volume persistence
+  - Auto-restart policy
+  - Health checks
+end note
+
+@enduml

@@ -1,0 +1,105 @@
+@startuml
+title eBank System - Use Case Diagram
+
+left to right direction
+
+actor "Client" as client
+actor "Administrator" as admin
+actor "External\nSystem" as external
+
+rectangle "eBank Banking Platform" {
+  
+  package "Authentication" {
+    usecase "Login" as UC1
+    usecase "Logout" as UC2
+  }
+  
+  package "Account Management" {
+    usecase "View Account\nBalance" as UC3
+    usecase "View Transaction\nHistory" as UC4
+    usecase "Create Account" as UC5
+    usecase "Close Account" as UC6
+    usecase "Block/Unblock\nAccount" as UC7
+  }
+  
+  package "Transactions" {
+    usecase "Perform\nTransfer" as UC8
+    usecase "Deposit\nFunds" as UC9
+    usecase "Withdraw\nFunds" as UC10
+    usecase "View Transfer\nStatus" as UC11
+  }
+  
+  package "Client Management" {
+    usecase "Create Client" as UC12
+    usecase "Update Client\nInfo" as UC13
+    usecase "View Client\nDetails" as UC14
+  }
+  
+  package "API Access" {
+    usecase "Access via\nREST API" as UC15
+    usecase "Access via\nSOAP" as UC16
+    usecase "Access via\ngRPC" as UC17
+    usecase "Access via\nGraphQL" as UC18
+  }
+}
+
+' Client relationships
+client --> UC1
+client --> UC2
+client --> UC3
+client --> UC4
+client --> UC8
+client --> UC11
+client --> UC14
+
+' Administrator relationships
+admin --> UC1
+admin --> UC5
+admin --> UC6
+admin --> UC7
+admin --> UC12
+admin --> UC13
+admin --> UC3
+admin --> UC4
+
+' External system relationships
+external --> UC16 : "Enterprise\nIntegration"
+external --> UC17 : "Microservice\nCommunication"
+
+' Include relationships
+UC3 ..> UC1 : <<include>>
+UC4 ..> UC1 : <<include>>
+UC8 ..> UC1 : <<include>>
+UC5 ..> UC1 : <<include>>
+UC6 ..> UC1 : <<include>>
+
+' Extend relationships
+UC8 ..> UC11 : <<extend>>
+
+' Protocol usage
+UC15 .down.> UC3
+UC15 .down.> UC8
+UC18 .down.> UC3
+UC18 .down.> UC4
+
+note right of UC8
+  Validates:
+  - Sufficient balance
+  - Valid accounts
+  - Amount > 0
+  Executes atomically
+end note
+
+note right of UC16
+  Used by legacy
+  enterprise systems
+  XML/WSDL based
+end note
+
+note right of UC17
+  High-performance
+  binary protocol
+  for microservices
+end note
+
+@enduml

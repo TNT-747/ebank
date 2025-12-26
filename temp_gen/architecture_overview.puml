@@ -1,0 +1,54 @@
+@startuml
+title eBank System Architecture Overview
+
+skinparam componentStyle rectangle
+
+cloud "External\nSystems" as External
+
+node "Frontend Container\nnginx:alpine" #LightBlue {
+  [React SPA\nPort: 80\n- Dashboard UI\n- Transfer Forms\n- Account Views] as Frontend
+}
+
+node "Backend Container\nopenjdk:17-alpine" #LightGreen {
+  package "Spring Boot\nPort: 8080" {
+    [REST API\n/api/**\nJSON] as REST
+    [SOAP Service\n/ws/**\nXML/WSDL] as SOAP
+    [gRPC Service\nPort: 9090\nProtobuf] as GRPC
+    [GraphQL\n/graphql\nSchema SDL] as GQL
+    
+    [JWT Security\nAuthentication Filter] as Security
+    
+    [Business Services\n- AccountService\n- CustomerService\n- TransactionService] as Services
+  }
+}
+
+node "Database Container\nmysql:8" #LightGray {
+  database "MySQL 8.0\nPort: 3306" as MySQL {
+    [customers]
+    [bank_accounts]
+    [transactions]
+    [users]
+  }
+}
+
+cloud "Docker Compose\nOrchestration" as Docker #LightCoral
+
+Frontend -down-> REST : HTTP/HTTPS\nAxios
+
+External -down-> SOAP : Enterprise\nIntegration
+External -down-> GRPC : Microservices\nCommunication
+
+REST -down-> Security
+SOAP -down-> Security
+GRPC -down-> Security
+GQL -down-> Security
+
+Security -down-> Services
+
+Services -down-> MySQL : JDBC\nHibernate/JPA
+
+Docker ..> Frontend : manages
+Docker ..> Backend Container : manages
+Docker ..> MySQL : manages
+
+@enduml

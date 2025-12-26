@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.ebank.grpc.generated";
+option java_outer_classname = "AccountServiceProto";
+
+package ebank;
+
+// Account Service Definition
+service AccountGrpcService {
+  rpc GetAccountByRib(GetAccountByRibRequest) returns (AccountResponse);
+  rpc GetAccountById(GetAccountByIdRequest) returns (AccountResponse);
+  rpc CreateAccount(CreateAccountGrpcRequest) returns (AccountResponse);
+}
+
+// Request to get account by RIB
+message GetAccountByRibRequest {
+  string rib = 1;
+}
+
+// Request to get account by ID
+message GetAccountByIdRequest {
+  int64 id = 1;
+}
+
+// Request to create account
+message CreateAccountGrpcRequest {
+  string rib = 1;
+  string identity_number = 2;
+}
+
+// Account response
+message AccountResponse {
+  int64 id = 1;
+  string rib = 2;
+  string balance = 3;
+  string status = 4;
+  string created_at = 5;
+  string client_name = 6;
+}
